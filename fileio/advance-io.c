@@ -22,6 +22,9 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 ssize_t preadv(int fd, const struct iovec *iov, int iovcnt,off_t offset);
 ssize_t pwritev(int fd, const struct iovec *iov, int iovcnt,off_t offset);
 
+/*
+ *  使用-或者/dev/fd/0或者/dev/stdin来代替标准输入，这样程序就可以接收标准输入的数据了
+ */
 
 int main(int argc,char *argv[])
 {
