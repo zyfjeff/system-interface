@@ -1,0 +1,126 @@
+	.file	"goto.c"
+	.local	env
+	.comm	env,200,32
+	.text
+	.type	f2, @function
+f2:
+.LFB2:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	$2, %esi
+	movl	$env, %edi
+	call	longjmp
+	.cfi_endproc
+.LFE2:
+	.size	f2, .-f2
+	.type	f1, @function
+f1:
+.LFB3:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movl	%edi, -4(%rbp)
+	cmpl	$1, -4(%rbp)
+	jne	.L3
+	movl	$1, %esi
+	movl	$env, %edi
+	call	longjmp
+.L3:
+	call	f2
+	nop
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE3:
+	.size	f1, .-f1
+	.section	.rodata
+	.align 8
+.LC0:
+	.string	"Inside doJump(): nvar=%d rvar=%d vvar=%d\n"
+	.text
+	.type	doJump, @function
+doJump:
+.LFB4:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movl	%edi, -4(%rbp)
+	movl	%esi, -8(%rbp)
+	movl	%edx, -12(%rbp)
+	movl	-12(%rbp), %ecx
+	movl	-8(%rbp), %edx
+	movl	-4(%rbp), %eax
+	movl	%eax, %esi
+	movl	$.LC0, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$1, %esi
+	movl	$env, %edi
+	call	longjmp
+	.cfi_endproc
+.LFE4:
+	.size	doJump, .-doJump
+	.section	.rodata
+	.align 8
+.LC1:
+	.string	"after longjmp(): nvar=%d rvar=%d vvar=%d\n"
+	.text
+	.globl	main
+	.type	main, @function
+main:
+.LFB5:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movl	%edi, -20(%rbp)
+	movq	%rsi, -32(%rbp)
+	movl	$111, -4(%rbp)
+	movl	$222, -24(%rbp)
+	movl	$333, -8(%rbp)
+	movl	$env, %edi
+	call	_setjmp
+	testl	%eax, %eax
+	jne	.L9
+	movl	$777, -4(%rbp)
+	movl	$888, -24(%rbp)
+	movl	$999, -8(%rbp)
+	movl	-8(%rbp), %edx
+	movl	-4(%rbp), %eax
+	movl	-24(%rbp), %esi
+	movl	%eax, %edi
+	call	doJump
+	jmp	.L8
+.L9:
+	movl	-8(%rbp), %edx
+	movl	-4(%rbp), %eax
+	movl	%edx, %ecx
+	movl	-24(%rbp), %edx
+	movl	%eax, %esi
+	movl	$.LC1, %edi
+	movl	$0, %eax
+	call	printf
+.L8:
+	movl	$0, %edi
+	call	exit
+	.cfi_endproc
+.LFE5:
+	.size	main, .-main
+	.ident	"GCC: (Debian 5.3.1-5) 5.3.1 20160101"
+	.section	.note.GNU-stack,"",@progbits
