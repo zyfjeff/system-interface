@@ -38,6 +38,7 @@ int fchownat(int dirfd, const char *pathname,
 //set-group-id的其他用途:
 //  1.屏蔽了属组的可执行权限位,则可利用set-group-ID权限位来启用强制文件锁定
 //  2.当作用于目录时,可利用set-group-id位来控制在该目录下创建文件的所有权
+
 int main()
 {
 
