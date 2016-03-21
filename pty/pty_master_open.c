@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
 
 /*
  *
@@ -19,24 +22,24 @@ int ptyMasterOpen(char *slaveName,size_t snLen)
     if(masterFd == -1)
         return -1;
     if(grantpt(masterFd) == -1) {
-        savedErrno = errno;
+        slavedErrno = errno;
         close(masterFd);
-        errno = savedErrno;
+        errno = slavedErrno;
         return -1;
     }
 
     if(unlockpt(masterFd) == -1){
-        savedErrno = errno;
+        slavedErrno = errno;
         close(masterFd);
-        errno = savedErrno;
+        errno = slavedErrno;
         return -1;
     }
 
     p = ptsname(masterFd);
     if(p == NULL) {
-        savedErrno = errno;
+        slavedErrno = errno;
         close(masterFd);
-        errno = savedErrno;
+        errno = slavedErrno;
         return -1;
     }
 
@@ -51,8 +54,4 @@ int ptyMasterOpen(char *slaveName,size_t snLen)
     return masterFd;
 }
 
-int main()
-{
-
-}
 
