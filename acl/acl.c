@@ -52,4 +52,21 @@
  *  group::r--
  *  other::r--
  *  这个文件包含了三条ACE记录,分别是ACL_USER_OBJ ACL_GROUP_OBJ ACL_OTHER 分别对应于传统文件的属主,属组,和other
+ *
+ *
+ *  setfacl -m [u|g]:[name]:[rwx] file 设置ACL_USER ACL_GROUP
+ *  setfacl -R 递归设置
+ *  setfacl -x [u:g][name] file 删除ACL_USER ACL_GROUP 可以有多个，逗号分割即可
+ *  setfacl -b 删除所有的扩展ACE条目,保留最小化的ACE
+ *
+ *  getfacl 查看acl规则 --omit-header 略去开头的注释信息
+ *
+ *  访问型ACL   判定进程对文件的访问权限
+ *  默认型ACL   决定了目录下所创建文件或子目录的ACL和权限
+ *
+ *  setfacl getfacl 通过-d选项来设置默认型ACL
+ *      设置了默认型ACL后，该目录下的子目录继承其默认型ACL,该目录下的子文件会将其默认型ACL当做访问型ACL继承
+ *      -k 可删除默认型ACL
  */
+
+
