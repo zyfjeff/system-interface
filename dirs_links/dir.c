@@ -55,6 +55,43 @@ char *get_current_dir_name(void);
 
 #include <unistd.h>
 int chroot(const char *path);
+/*
+ *  chroot目录中有指向chroot外部的硬链接，那么chroot区域的安全将受到威胁
+ *  或者是特权进程在chroot内使用mknod创建一个内存设备文件，类似于/dev/mem 并通过该设备来访问RAM的内容
+ *  到那时就一切都有可能了,因此不要在chroo区域内放置set-user-ID-root程序
+ *
+ *  初次之外还需要考虑下面几种可能会越狱的场景:
+ *  1.调用chroot了，但是并未改变进程当前工作目录，那么程序可以使用相对路径去访问chroot外的目录
+ *  2.进程对chroot区域外的某一个目录持有一打开文件描述符，那么结合fchdir和chroot即可越狱成功
+ *  3.即使chroot成功了，也没有出现上面的问题，但是遭受chroot的进程仍然可以利用unix域套接字来接受指向chroot外目录的文件描述符
+ *
+ */
+
+
+#include <limits.h>
+#include <stdlib.h>
+/*
+ *  对path中的所有符号链接一一解除引用，并解析其中的.和..的引用。最后生成一个绝对路径名
+ */
+char *realpath(const char *path, char *resolved_path);
+
+/*
+ *  将一个路径名字符串分解成目录和文件名两个部分,这两个函数会原地修改字符串,事先可以使用strdup(该函数用了malloc)，需要free
+ *  使用这两个函数，需要考虑下面几个事情:
+ *
+ *  1.忽略pathname中尾部的斜线字符
+ *  2.如果pathname中不包含斜线字符，那么dirname返回字符串.而basename将返回path
+ *  3.如果pathname仅由一个斜线字符组成,那么dirname和basename均将返回字符串/
+ *  4.如果pathname为空指针或者空字符串，那么dirname和basename均将返回字符串点
+ *
+ *
+ */
+
+#include <libgen.h>
+char *dirname(char *path);
+char *basename(char *path);
+
+
 
 
 
