@@ -7,7 +7,7 @@
  */
 DIR *opendir(const char *name);
 DIR *fdopendir(int fd);
-//没调用readdir一次，就会从dirp所指代的目录流中读取下一目录返回，并返回一枚指针指向经静态分配而得到的dirent
+//每调用readdir一次，就会从dirp所指代的目录流中读取下一目录返回，并返回一枚指针指向经静态分配而得到的dirent
 //类型结构体。因此readdir是不可重入的，每次readdir的调用都会覆盖上次的dirent，readdir返回的文件名是未排序的。
 struct dirent *readdir(DIR *dirp);
 //可重入的，使用用户分配的内存，存储dirent结构体
