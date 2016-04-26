@@ -45,10 +45,85 @@
  *  5.多线程应用中，所有线程必须运行同一个车光绪
  *  6.除了数据，线程还可以共享某些其他信息(例如: 文件描述符，信号处置，当前工作目录，用户ID和组ID
  *
- *  )
+ *  互斥锁仅仅是一种建议锁，而非强制。线程可以考虑不使用互斥量，而仅访问相应的共享变量，为了安全地处理共享变量，所有线程
+ *  在使用互斥量时必须互相协调，遵守既定的锁定规则。
  *
+ *  可以静态分配，也可以动态创建
+ *  pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER  静态初始化只能用于经由动态分配且携带默认属性的互斥量
+ *  如果需要通过pthread_mutexatrr_t来指定mutex的属性，则需要使用动态创建初始化，静态初始化的互斥量无序pthread_mutex_destroy
+ *  经由pthread_mutex_destroy销毁的互斥量，可调用pthread_mutex_init对其重新初始化
  *
- */
+ *  互斥量死锁问题:
+ *      一个线程需要同时访问两个或者更多不同的共享资源，而每个资源又都由不同对的互斥量管理,这将导致死锁的可能
+ *      为了避免此类死锁问题，最简单的方法就是定义互斥量的层级关系。
+ *
+ *  互斥量的类型:
+ *  PTHREAD_MUTEX_NORMAL    不具有死锁检测的功能，试图对已由自己锁定的互斥量加锁，则发生死锁，互斥量处于未锁定状态下，
+ *  或者已由其他线程锁定，对其解锁会导致不确定的结果。
+ *
+ *  PTHREAD_MUTEX_ERRORCHECK    对此类互斥量的所有操作都会执行错误检查
+ *
+ *  PTHREAD_MUTEX_RECURSIVE 地柜互斥量维护有一个锁计数器，当线程第一次取得互斥量就将锁计数器置1,后续由同一个线程执行
+ *  的每次加锁操作都会递增计数器的数值，而解锁操作则递减计数器计数。只有当锁计数器值降到0时，才会释放该互斥量。
+ *  PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+ *
+ *  条件变量:
+ *      互斥量防止多个线程同时访问同一个共享变量，条件变量允许一个线程就某个共享变量的状态变化通知其他线程，并让其他线程
+ *      等待这一通知。条件变量总是结合互斥量使用，条件变量就共享变量的状态改变发出通知，而互斥量则提供对该共享变量访问的互斥
+ *  条件变量的分配也有静态和动态之分，静态初始化为PTHREAD_COND_INITALIZER
+*
+*  pthread_cond_signal和pthread_cond_broadcast之间的差别，而这对阻塞于pthread_cond_wait的多个线程处理方式不同，pthread_cond_signal
+*  只保证唤醒至少一条遭到阻塞的线程，而pthread_cond_broadcast则会唤醒所有遭到阻塞的线程
+*
+*  pthread_cond_signal 用于所有线程执行完全相同的任务，基于这些假设，pthread_cond_signal比pthread_cond_broadcast更有效率
+*  pthread_cond_broadcast锁处理的情况是，处于等待状态的所有线程执行的任务不同(判定条件不同)
+*　
+*  用条件变量实现生产者-消费者模型:
+*
+*  生产者代码:
+*  static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+*  static pthread_cond_t cond = PTHREAD_MUTEX_INITIALIZER;
+*  static int avail = 0;
+*  s = pthread_mutex_lock(&mtx);
+*  if(s != 0)
+*       errExitEN(s,"pthread_mutex_lock");
+*  avail++;
+*  s = pthread_mutex_unlock(&tmx);
+*  s = pthread_cond_signal(&cond);      //这里的通知可以放到互斥代码中，也可以放在解锁后
+*  if(s != 0)
+*       errExitEN(s,"pthread_cond_signal");
+*
+*   在某些实现中，先解互斥量再通知条件变量可能比反序指向效率更高，如果仅在发出条件变量信号后才解锁，那么可能会导致
+*   线程被唤醒但是还未解锁，导致cond_wait唤醒后发现还未解锁便再次休眠，导致多余的上下文切换。
+*
+* 消费者代码:
+*for(;;) {
+*   s = pthread_mutex_lock(&mtx)
+*   if(s != 0)
+*       errExitEN(s,"pthread_mutex_lock");
+*
+*   while(avail == 0) {             //Wait for something to consume,这里必须是while循环，避免虚假唤醒
+*       s = pthread_cond_wait(&cond,&mtx);      //cond_wait时会被解锁，
+*       if(s != 0)
+*           errExitEN(s,"pthread_cond_wait")
+*   }
+*
+*   while(avail > 0) {
+*       avail--;
+*   }
+*   s = pthread_mutex_unlcok(&mtx)
+*   if(s != 0)
+*       errExitEN(s,"pthread_mutex_unlock")
+*}
+*
+*   这里使用while而不是if，其原因如下:
+*   1.其它线程可能率先醒来
+*   2.虚假唤醒
+*
+*
+*
+*/
+
 
 int main()
 {
